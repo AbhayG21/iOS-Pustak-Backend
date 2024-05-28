@@ -1,5 +1,6 @@
 const roles = {
-    AD: "Admin",
+    SA: "Super Admin",
+    LA: "Library Admin",
     LB: "Librarian",
     MB: "Member"
 }
