@@ -4,5 +4,5 @@ const roles = {
     LB: "Librarian",
     MB: "Member"
 }
-module.exports = roles
+export default roles;
 

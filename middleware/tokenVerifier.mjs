@@ -1,6 +1,6 @@
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken"
 
-const tokenVerifirer = (roles) => {
+const tokenVerifier = (roles) => {
   return (req, res, next) => {
     try {
       const token = req.headers["authorization"].split(" ")[1];
@@ -19,4 +19,4 @@ const tokenVerifirer = (roles) => {
   };
 };
 
-module.exports =  tokenVerifirer ;
+export default tokenVerifier;

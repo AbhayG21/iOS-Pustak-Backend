@@ -1,6 +1,5 @@
-const roles = require("../constants/roles")
-const jwt = require("jsonwebtoken")
-
+import roles from "../constants/roles.mjs";
+import jwt from "jsonwebtoken"
 function superAdminDecoder()
 {
     return (req,res,next)=>{
@@ -13,10 +12,8 @@ function superAdminDecoder()
             const payLoad = {name:"Abhay Gupta",role:roles.SA};
             const options = {expiresIn:"1h"};
             const secret = process.env.SECRET_JWT
-
             const token = jwt.sign(payLoad,secret,options);
             req.token = token;
-
             next();
         }
         else
@@ -25,4 +22,4 @@ function superAdminDecoder()
         }
     }
 }
-module.exports = superAdminDecoder();
+export default superAdminDecoder()
