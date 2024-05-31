@@ -1,4 +1,7 @@
 export const libraryAdminPassword =()=>
 {
-    return "habibi"
+    return "adminhabibi"
+}
+export const librarianPassword = ()=>{
+    return "librarianhabibi"
 }

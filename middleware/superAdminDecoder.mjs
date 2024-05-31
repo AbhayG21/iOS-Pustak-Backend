@@ -8,7 +8,6 @@ function superAdminDecoder()
 
         if (id == reqId)
         {
-            console.log("yessss")
             const payLoad = {name:"Abhay Gupta",role:roles.SA};
             const options = {expiresIn:"1h"};
             const secret = process.env.SECRET_JWT
@@ -18,7 +17,7 @@ function superAdminDecoder()
         }
         else
         {
-            res.status(403).json({message:"Not Authorised"});
+            res.status(403).json({message:"Not Authorised zxcvb"});
         }
     }
 }

@@ -9,4 +9,8 @@ try {
   console.error(e);
 }
 let database = connect.db("pustak-main");
+
+export const userCollection = database.collection("pustak-users");
+export const libraryCollection = database.collection("pustak-libraries");
+export const bookCollection = database.collection("pustak-books");
 export default database;

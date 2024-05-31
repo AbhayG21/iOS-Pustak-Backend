@@ -1,10 +1,9 @@
 import express from "express"
-import tokenVerifier from "../middleware/tokenVerifier.mjs"
 import roles from "../constants/roles.mjs"
 import bcrypt from "bcrypt"
 import { libraryAdminPassword } from "../helperFunctions/passGenerator.mjs"
 import database from "../controllers/database.mjs"
-const userCol = database.collection("pustak")
+import { userCollection } from "../controllers/database.mjs"
 const router = express.Router()
 
 router.post("/create", (req, res) => {
@@ -23,7 +22,9 @@ router.post("/create", (req, res) => {
         name:name,
         email:email,
         phone:phone,
-        role:roles.LA
+        role:roles.LA,
+        libraries:[],
+        librarians:[]
       };
 
       const password = libraryAdminPassword();
@@ -35,16 +36,16 @@ router.post("/create", (req, res) => {
           password:hashPass
         }
 
-        userCol.findOne({email:email}).then((e)=>{
+        userCollection.findOne({email:email}).then((e)=>{
           if(e){
             res.status(400).json({message:"user already exists"});
           }
           else{
-            userCol.insertOne(payLoad).then((e)=>{
+            userCollection.insertOne(payLoad).then((e)=>{
               res.status(201).json({message:"Admin created"});
             })
             .catch((error)=>{
-              res.status(400).json({message:"Bad request"})
+              res.status(400).json({message:"Bad request LA"})
             })
           }
         })
@@ -52,7 +53,7 @@ router.post("/create", (req, res) => {
       });
 
   }catch{
-    res.status(400).json({message:"Bad requesst 2"})
+    res.status(400).json({message:"Bad requesst LA2"})
   }
 });
 

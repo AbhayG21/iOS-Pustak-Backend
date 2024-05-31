@@ -12,6 +12,8 @@ const tokenVerifier = (roles) => {
         res.status(403).json({ message: "Not Authorized" });
       }
 
+      req.token = token
+
       next();
     } catch {
       res.status(401).json({ message: "Something Broke" });
