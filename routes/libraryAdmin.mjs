@@ -8,23 +8,24 @@ const router = express.Router()
 
 router.post("/create", (req, res) => {
   try{
-    const name = req.body.name
-    const email = req.body.email
-    const phone = req.body.phone
-    const id = req.body.id
-
-    if(!name || !email || !phone || !id)
-      {
+    const reqKeys = [
+      "id",
+      "name",
+      "email",
+      "personalEmail",
+      "phone",
+      "role",
+      "libraries",
+      "librarians",
+    ]
+    const keys = Object.keys(req.body);
+    reqKeys.forEach((e) => {
+      if (keys.indexOf(e) == -1) {
         throw new Error();
       }
+    });
       let payLoad = {
-        id: id,
-        name:name,
-        email:email,
-        phone:phone,
-        role:roles.LA,
-        libraries:[],
-        librarians:[]
+        ...req.body,
       };
 
       const password = libraryAdminPassword();
@@ -36,7 +37,7 @@ router.post("/create", (req, res) => {
           password:hashPass
         }
 
-        userCollection.findOne({email:email}).then((e)=>{
+        userCollection.findOne({email:req.body.loginEmail}).then((e)=>{
           if(e){
             res.status(400).json({message:"user already exists"});
           }
@@ -54,6 +55,26 @@ router.post("/create", (req, res) => {
 
   }catch{
     res.status(400).json({message:"Bad requesst LA2"})
+  }
+});
+
+router.get("/", (req, res) => {
+  try {
+    userCollection
+      .find({
+        role:roles.LA
+      })
+      .project({ password: 0 })
+      .toArray()
+      .then((e) => {
+        res.status(200).json(e);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(404).json({ message: "Not found" });
+      });
+  } catch {
+    res.status(400).json({ message: "Bad request a" });
   }
 });
 

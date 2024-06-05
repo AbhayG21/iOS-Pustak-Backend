@@ -7,10 +7,11 @@ const secret = process.env.SECRET_JWT;
 
 router.post("/create", (req, res) => {
   try {
-    const keys = ["id", "libraryName", "phone", "email", "address"];
+    const keys = ["id", "libraryName", "libraryContact", "email", "address","books","libraryAdmin"];
     const reqKeys = Object.keys(req.body);
     keys.forEach((e) => {
       if (reqKeys.indexOf(e) == -1) {
+        console.log()
         throw new Error();
       }
     });
@@ -27,17 +28,17 @@ router.post("/create", (req, res) => {
           id:body.id,
           libraryName:body.libraryName,
           email:body.email,
-          phone:body.phone,
+          libraryContact:body.libraryContact,
           address:body.address,
           books:[],
-          admin:adminEmail
+          libraryAdmin:body.libraryAdmin
         }
         libraryCollection
           .insertOne(payLoad)
           .then((e) => {
             userCollection.updateOne(
               {email:tokenPayload.email},
-              {$push:{libraries:payLoad}}
+              {$push:{libraries:payLoad.id}}
             )
             res.status(201).json({ message: "Library created" });
           })
@@ -48,6 +49,23 @@ router.post("/create", (req, res) => {
     });
   } catch {
     res.status(400).json({ message: "Bad request lib" });
+  }
+});
+
+router.get("/", (req, res) => {
+  try {
+    libraryCollection
+      .find({})
+      .toArray()
+      .then((e) => {
+        res.status(200).json(e);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(404).json({ message: "Not found" });
+      });
+  } catch {
+    res.status(400).json({ message: "Bad request a" });
   }
 });
 

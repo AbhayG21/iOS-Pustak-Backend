@@ -8,13 +8,13 @@ import libAdminRoute from "./routes/libraryAdmin.mjs"
 import librarianRoute from "./routes/librarian.mjs"
 import libraryRoute from "./routes/library.mjs"
 import bookRoute from "./routes/book.mjs"
-import bcrypt from "bcrypt"
+import bcrypt, { hash } from "bcrypt"
 import database from "./controllers/database.mjs"
 import { userCollection } from "./controllers/database.mjs"
 
 const app = express();
-const port = process.env.PORT || 8080;
-
+const port = process.env.PORT
+const salt = 10
 app.use(bodyParser.json());
 
 app.get("/super-admin",superAdminDecoder,(req,res)=>{
@@ -30,24 +30,23 @@ app.post("/auth/login",(req,res)=>{
     if(!email || !pass){
         throw new Error();
     }
+
     userCollection.findOne({email:email}).then((e)=>{
         if(e){
             let hashPass = e.password;
             let verifyPass = bcrypt.compareSync(pass,hashPass);
-            console.log(pass,hashPass)
             if(verifyPass){
                 let payLoad = {
                     email:email,
                     role:e.role
                 };
-                console.log(payLoad)
                 let secret = process.env.SECRET_JWT;
                 let options = {expiresIn:"24h"};
 
                 const token = jwt.sign(payLoad,secret,options);
                 delete e.password
                 delete e._id
-                res.status(200).json({ message: "OK", token: token, user: e });
+                res.status(200).json({ message: "OK",role: e.role, token: token, user: e, id: e.id });
             }else {
                 res.status(400).json({ message: "Bad Request index" });
               }
@@ -60,6 +59,67 @@ app.post("/auth/login",(req,res)=>{
     }
 })
 
+app.post("/verify", (req, res) => {
+    try {
+      const token = req.headers["authorization"].split(" ")[1];
+      const secret = process.env.SECRET_JWT;
+      const tokenPayload = jwt.verify(token, secret);
+      if (tokenPayload) {
+        res.status(200).json({ message: "OK" });
+      } else {
+        res.status(401).json({ message: "Please login again" });
+      }
+    } catch {
+      res.status(400).json({ message: "Bad Request" });
+    }
+  });
+
+app.post("/member-create",(req,res) =>{
+    console.log(req.body);
+    
+    try{const keys = [
+      "id",
+      "role",
+      "name",
+      "email",
+      "phone",
+      "password"
+    ]
+    const keyBody = Object.keys(req.body);
+    keys.forEach((e)=>{
+      if(keyBody.indexOf(e) == -1){
+              throw new Error();
+      }
+  })
+
+  const body = req.body
+  const password = body.password
+  bcrypt.hash(password,salt).then((hashPass)=>{
+    
+
+    userCollection.findOne({id:body.id}).then((e)=>{
+      if(e){
+        res.status(409).json({message:"Email already exists"})
+      }
+      else{
+        const payload = {
+          ...req.body,
+           password:hashPass
+         };
+        userCollection.insertOne(payload).then((e)=>{
+          res.status(201).json({message:"member created"})
+        })
+        .catch((error)=>{
+          res.status(400).json({message:"Bad request member"})
+        })
+      }
+    })
+  })}catch{
+    res.status(400).json({message:"Bad request member 2"})
+  }
+
+
+});
 
 app.use("/library-admin", tokenVerifier([roles.SA]));
 app.use("/library-admin", libAdminRoute);
@@ -74,6 +134,8 @@ app.use("/book", tokenVerifier([roles.LB]));
 app.use("/book", bookRoute);
 
 // app.use("/member")
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+

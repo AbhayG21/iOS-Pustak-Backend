@@ -1,8 +1,9 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import { userCollection } from "../controllers/database.mjs";
+import { userCollection,libraryCollection } from "../controllers/database.mjs";
 import roles from "../constants/roles.mjs";
 import jwt from "jsonwebtoken";
+import { librarianPassword } from "../helperFunctions/passGenerator.mjs";
 
 const router = express.Router();
 const salt = 10;
@@ -10,8 +11,17 @@ const secret = process.env.SECRET_JWT;
 
 
 router.post("/create", (req, res) => {
+    console.log(req.body)
     try {
-        const keys = ["id","email","name","phone","library","password"]
+        const keys = [
+        "id",
+        "role",
+        "name",
+        "admin",
+        "email",
+        "phone",
+        "assignedLibrary",
+        "personalEmail",]
         const keyBody = Object.keys(req.body);
         keys.forEach((e)=>{
             if(keyBody.indexOf(e) == -1){
@@ -20,29 +30,26 @@ router.post("/create", (req, res) => {
         })
 
         const body = req.body
-        bcrypt.hash(body.password, salt).then((e) => {
-            const token = req.token;
-            const tokenPayLoad = jwt.verify(token, secret);
-            const payLoad = {
-                id: body.id,
-                email: body.email,
-                name: body.name,
-                phone: body.phone,
-                library: body.library,
-                password: e,
-                role: roles.LB,
-                admin: tokenPayLoad.email
-            };
+        let password = librarianPassword()
+        bcrypt.hash(password, salt).then((hashPass) => {
 
             userCollection.findOne({ email: body.email }).then((e) => {
-                if (e) { res.status(400).json({ message: "email already exists" }); }
+                if (e) { res.status(409).json({ message: "email already exists" }); }
                 else{
-                    userCollection.insertOne(payLoad).then((e)=>{
+                    userCollection.insertOne({
+                        ...body,
+                        password:hashPass
+                    }).then((e)=>{
                         userCollection.updateOne(
-                            {email:tokenPayLoad.email},
-                            {$push:{librarians:payLoad}}
+                            {id:body.admin},
+                            {$push:{librarians:body.id}}
+                        );
+
+                        libraryCollection.updateOne(
+                            {id: body.assignedLibrary},
+                            {$set :{librarianAssigned:body.id}}
                         )
-                        res.status(401).json({message:"librarian added"})
+                        res.status(201).json({message:"librarian added"})
                     })
                     .catch((error)=>{
                         res.status(400).json({message:"Bad request lb"});

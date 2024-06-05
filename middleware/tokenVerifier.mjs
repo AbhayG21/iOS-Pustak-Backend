@@ -5,7 +5,6 @@ const tokenVerifier = (roles) => {
     try {
       const token = req.headers["authorization"].split(" ")[1];
       const payload = jwt.verify(token, process.env.SECRET_JWT);
-
       const role = payload.role;
 
       if (roles.indexOf(role) == -1) {
