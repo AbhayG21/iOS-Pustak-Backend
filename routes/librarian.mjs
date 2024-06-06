@@ -4,6 +4,7 @@ import { userCollection,libraryCollection } from "../controllers/database.mjs";
 import roles from "../constants/roles.mjs";
 import jwt from "jsonwebtoken";
 import { librarianPassword } from "../helperFunctions/passGenerator.mjs";
+import { keyVerifier, librarianKeys } from "../Keys/index.mjs";
 
 const router = express.Router();
 const salt = 10;
@@ -86,5 +87,30 @@ router.get("/:id", (req, res) => {
         res.status(400).json({ messgae: "Bad request" });
       }
     });
+
+router.post("/update",(req,res)=>{
+  try{
+    const reqKeys = Object.keys(req.body)
+  keyVerifier(reqKeys,librarianKeys)
+
+  const body = req.body
+
+  userCollection.findOne({id:body.id}).then((e)=>{
+    delete body.assignedLibrary
+    userCollection.updateOne(
+      {id:body.id},
+      {$set:body}
+    ).then((resp)=>{
+      res.status(200).json({message:"Librarian updated successfully"})
+    })
+  }).catch((err)=>{
+    res.status(404).json({message:"Not found"})
+  })
+  }catch{
+    res.status(400).status({message:"Bad request librarian update"})
+  }
+})
+
+
 
 export default router;
