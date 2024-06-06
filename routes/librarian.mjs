@@ -12,7 +12,6 @@ const secret = process.env.SECRET_JWT;
 
 
 router.post("/create", (req, res) => {
-    console.log(req.body)
     try {
         const keys = [
         "id",
@@ -80,7 +79,6 @@ router.get("/:id", (req, res) => {
             }
           })
           .catch((err) => {
-            console.log(err);
             res.status(500).json({ message: "Server error" });
           });
       } catch {
@@ -130,6 +128,7 @@ router.put("/remove/:id",(req,res)=>{
     res.status(400).json({message:"Bad request librarian remove"})
   }
 });
+
 
 
 

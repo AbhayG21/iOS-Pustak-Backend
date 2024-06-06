@@ -12,7 +12,6 @@ router.post("/create", (req, res) => {
     const reqKeys = Object.keys(req.body);
     keys.forEach((e) => {
       if (reqKeys.indexOf(e) == -1) {
-        console.log()
         throw new Error();
       }
     });
@@ -70,7 +69,6 @@ router.get("/", (req, res) => {
           });
       })
       .catch((err) => {
-        console.log(err);
         res.status(404).json({ message: "Not found" });
       });
   } catch {
@@ -91,7 +89,6 @@ router.get("/:id", (req, res) => {
         }
       })
       .catch((err) => {
-        console.log(err);
         res.status(500).json({ message: "Server error" });
       });
   } catch {

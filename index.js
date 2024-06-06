@@ -75,8 +75,6 @@ app.post("/verify", (req, res) => {
   });
 
 app.post("/member-create",(req,res) =>{
-    console.log(req.body);
-    
     try{const keys = [
       "id",
       "role",

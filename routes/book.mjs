@@ -77,10 +77,9 @@ router.post("/update",(req,res)=>{
 }
 });
 
-router.get("/:id", (req, res) => {
+router.get("/all/:id", (req, res) => {
     try {
       const id = req.params.id;
-      console.log(id)
       libraryCollection
         .findOne({ id: id })
         .then((e) => {
@@ -105,13 +104,11 @@ router.post("/remove",(req,res)=>{
         const body = req.body
         
         libraryCollection.findOne({id:body.libraryId}).then((e)=>{
-            console.log(e)
             libraryCollection.updateOne({id:body.libraryId},
                 {
                     $pull: {books:{id: body.id}}
                 }
             ).then((resp)=>{
-                console.log(resp)
                 res.status(200).json({message:"Book removed successfully"})
             })
         }).catch((err)=>{
@@ -119,10 +116,35 @@ router.post("/remove",(req,res)=>{
         })
 
     }catch{
-        console.log(req.body)
         res.status(400).json({message:"Bad request"})
     }
 });
 
+router.get("/detail",(req,res)=>{
+    try {
+        const id = req.query.id;
+        const libraryId = req.query.libraryId
+
+        if(!id || !libraryId){
+            throw new Error()
+        }
+        libraryCollection.aggregate([
+            {$match:{id:libraryId}},
+            {$unwind: "$books"},
+            {$match:{"books.id":id}},
+            {$project:{_id:0,books:"$books"}},
+        ])
+        .toArray()
+        .then((e)=>{
+            console.log(e[0])
+            res.status(200).json({message:"Book detail successfull"})
+        })
+        .catch((err)=>{
+            res.status(404).json({message:"Not found"})
+        })
+    } catch {
+        res.status(400).json({message:"Bad request bookDetail"})
+    }
+})
 
 export default router;
