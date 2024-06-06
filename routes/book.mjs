@@ -1,7 +1,7 @@
 import express from "express";
-import { bookCollection, libraryCollection } from "../controllers/database.mjs";
+import {libraryCollection } from "../controllers/database.mjs";
 import jwt from "jsonwebtoken";
-import { bookKeys } from "../Keys/index.mjs";
+import { bookKeys, keyVerifier } from "../Keys/index.mjs";
 const router = express.Router();
 
 router.post("/create", (req, res) => {
@@ -96,6 +96,33 @@ router.get("/:id", (req, res) => {
     } catch {
       res.status(400).json({ message: "Bad request" });
     }
-  });
+});
+
+router.post("/remove",(req,res)=>{
+    try{
+        const reqKeys = Object.keys(req.body)
+        keyVerifier(reqKeys,bookKeys)
+        const body = req.body
+        
+        libraryCollection.findOne({id:body.libraryId}).then((e)=>{
+            console.log(e)
+            libraryCollection.updateOne({id:body.libraryId},
+                {
+                    $pull: {books:{id: body.id}}
+                }
+            ).then((resp)=>{
+                console.log(resp)
+                res.status(200).json({message:"Book removed successfully"})
+            })
+        }).catch((err)=>{
+            res.status(404).json({message:"Not found"})
+        })
+
+    }catch{
+        console.log(req.body)
+        res.status(400).json({message:"Bad request"})
+    }
+});
+
 
 export default router;

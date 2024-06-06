@@ -86,7 +86,7 @@ router.get("/:id", (req, res) => {
       } catch {
         res.status(400).json({ messgae: "Bad request" });
       }
-    });
+});
 
 router.post("/update",(req,res)=>{
   try{
@@ -109,7 +109,27 @@ router.post("/update",(req,res)=>{
   }catch{
     res.status(400).status({message:"Bad request librarian update"})
   }
-})
+});
+
+router.put("/remove/:id",(req,res)=>{
+  try{
+    const id = req.params.id;
+    userCollection.findOne({id:id}).then((e)=>{
+      libraryCollection.updateOne(
+        {id:e.assignedLibrary},
+        {$unset:{librarianAssigned: ""}}
+      ).then((resp)=>{
+        userCollection.deleteOne({id:id}).then((resp)=>{
+          res.status(200).json({message:"Librarian removed"})
+        })
+      })
+    }).catch((err)=>{
+      res.status(404).json({message:"Librarian not found for removal"})
+    })
+  }catch{
+    res.status(400).json({message:"Bad request librarian remove"})
+  }
+});
 
 
 

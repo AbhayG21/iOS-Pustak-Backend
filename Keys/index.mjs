@@ -35,6 +35,7 @@ export const bookKeys = [
     required.map((e)=>{
         if(request.indexOf(e) == -1)
             {
+              console.log(e)
                 throw new Error()
             }
     })
