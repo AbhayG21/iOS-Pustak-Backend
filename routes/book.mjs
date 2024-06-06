@@ -15,7 +15,7 @@ router.post("/create", (req, res) => {
             "title",
             "nos_pages",
             "price",
-            "libID",
+            "libId",
             "id",
         ];
         const reqKeys = Object.keys(req.body);

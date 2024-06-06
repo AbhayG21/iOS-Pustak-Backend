@@ -54,19 +54,30 @@ router.post("/create", (req, res) => {
 
 router.get("/", (req, res) => {
   try {
+    let id = req.query.id;
     libraryCollection
-      .find({})
+      .find({ libraryAdmin: id })
       .toArray()
       .then((e) => {
-        res.status(200).json(e);
+        userCollection
+          .find({ admin: id })
+          .toArray()
+          .then((resp) => {
+            res
+              .status(200)
+              .json({ message: "OK", libraries: e, librarians: resp });
+          });
       })
       .catch((err) => {
         console.log(err);
         res.status(404).json({ message: "Not found" });
       });
   } catch {
-    res.status(400).json({ message: "Bad request a" });
+    res.status(400).json({ message: "Bad Request" });
   }
 });
+
+
+
 
 export default router;

@@ -62,4 +62,29 @@ router.post("/create", (req, res) => {
     }
 });
 
+router.get("/:id", (req, res) => {
+      try {
+        const id = req.params.id;
+        libraryCollection
+          .findOne({ id: id })
+          .then((e) => {
+            if (e && e.librarianAssigned) {
+              userCollection.findOne({ id: e.librarianAssigned }).then((resp) => {
+                res
+                  .status(200)
+                  .json({ message: "OK", librarian: resp });
+              });
+            } else {
+              throw new Error();
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+            res.status(500).json({ message: "Server error" });
+          });
+      } catch {
+        res.status(400).json({ messgae: "Bad request" });
+      }
+    });
+
 export default router;
