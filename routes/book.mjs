@@ -137,7 +137,7 @@ router.get("/detail",(req,res)=>{
         .toArray()
         .then((e)=>{
             console.log(e[0])
-            res.status(200).json({message:"Book detail successfull"})
+            res.status(200).json({message:"Book detail successfull",book:e[0].books})
         })
         .catch((err)=>{
             res.status(404).json({message:"Not found"})

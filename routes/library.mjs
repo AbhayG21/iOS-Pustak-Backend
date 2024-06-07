@@ -2,9 +2,33 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { libraryCollection,userCollection } from "../controllers/database.mjs";
 import { keyVerifier, libraryKeys } from "../Keys/index.mjs";
+import roles from "../constants/roles.mjs";
+import tokenVerifier from "../middleware/tokenVerifier.mjs"
 
 const router = express.Router();
 const secret = process.env.SECRET_JWT;
+
+
+router.get("/:id", (req, res) => {
+  try {
+    const id = req.params.id;
+    libraryCollection
+      .findOne({ librarianAssigned: id })
+      .then((e) => {
+        if (e) {
+          res.status(200).json({ message: "OK", library: e });
+        } else {
+          res.status(404).json({ message: "Not found" });
+        }
+      })
+      .catch((err) => {
+        res.status(500).json({ message: "Server error" });
+      });
+  } catch {
+    res.status(400).json({ messgae: "Bad request" });
+  }
+});
+router.use(tokenVerifier([roles.LA]))
 
 router.post("/create", (req, res) => {
   try {
@@ -76,25 +100,7 @@ router.get("/", (req, res) => {
   }
 });
 
-router.get("/:id", (req, res) => {
-  try {
-    const id = req.params.id;
-    libraryCollection
-      .findOne({ librarianAssigned: id })
-      .then((e) => {
-        if (e) {
-          res.status(200).json({ message: "OK", library: e });
-        } else {
-          res.status(404).json({ message: "Not found" });
-        }
-      })
-      .catch((err) => {
-        res.status(500).json({ message: "Server error" });
-      });
-  } catch {
-    res.status(400).json({ messgae: "Bad request" });
-  }
-});
+
 
 router.post("/update",(req,res)=>{
   try{
@@ -104,12 +110,14 @@ router.post("/update",(req,res)=>{
 
       libraryCollection.findOne({id:body.id}).then((e)=>{
         if(e){
+          delete body.librarianAssigned
           libraryCollection.updateOne(
             {id:body.id},
             {
               $set:body
             }
           ).then((e)=>{
+            console.log(e)
             res.status(200).json({message:"Library details updated"})
           })
         }
@@ -122,5 +130,6 @@ router.post("/update",(req,res)=>{
     res.status(500).status({message:"Server Error"})
   }
 })
+
 
 export default router;

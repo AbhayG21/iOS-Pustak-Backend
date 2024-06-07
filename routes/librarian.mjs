@@ -5,12 +5,39 @@ import roles from "../constants/roles.mjs";
 import jwt from "jsonwebtoken";
 import { librarianPassword } from "../helperFunctions/passGenerator.mjs";
 import { keyVerifier, librarianKeys } from "../Keys/index.mjs";
-
+import tokenVerifier from "../middleware/tokenVerifier.mjs";
 const router = express.Router();
 const salt = 10;
 const secret = process.env.SECRET_JWT;
 
 
+router.get("/all/:id", (req, res) => {
+  try {
+    const id = req.params.id;
+    userCollection
+      .findOne({ id: id })
+      .then((e) => {
+        if (e) {
+          delete e.password
+          res.status(200).json({message:"Ok",librarian:e})
+          console.log(e)
+          return
+        } else {
+          res.status(404).json({message:"Not found"})
+          return
+        }
+      })
+      .catch((err) => {
+        res.status(500).json({ message: "Server error" });
+        return
+      });
+  } catch {
+    res.status(400).json({ messgae: "Bad request" });
+    return
+  }
+});
+
+router.use(tokenVerifier([roles.LA]))
 router.post("/create", (req, res) => {
     try {
         const keys = [
@@ -62,34 +89,12 @@ router.post("/create", (req, res) => {
     }
 });
 
-router.get("/:id", (req, res) => {
-      try {
-        const id = req.params.id;
-        libraryCollection
-          .findOne({ id: id })
-          .then((e) => {
-            if (e && e.librarianAssigned) {
-              userCollection.findOne({ id: e.librarianAssigned }).then((resp) => {
-                res
-                  .status(200)
-                  .json({ message: "OK", librarian: resp });
-              });
-            } else {
-              throw new Error();
-            }
-          })
-          .catch((err) => {
-            res.status(500).json({ message: "Server error" });
-          });
-      } catch {
-        res.status(400).json({ messgae: "Bad request" });
-      }
-});
+
 
 router.post("/update",(req,res)=>{
   try{
     const reqKeys = Object.keys(req.body)
-  keyVerifier(reqKeys,librarianKeys)
+    keyVerifier(reqKeys,librarianKeys)
 
   const body = req.body
 

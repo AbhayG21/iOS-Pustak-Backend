@@ -13,9 +13,9 @@ const tokenVerifier = (roles) => {
 
       req.token = token
 
-      next();
+      return next();
     } catch {
-      res.status(401).json({ message: "Something Broke" });
+      res.status(401).json({ message: "Invalid token" });
     }
   };
 };

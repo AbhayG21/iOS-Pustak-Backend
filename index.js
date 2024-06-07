@@ -37,7 +37,7 @@ app.post("/auth/login",(req,res)=>{
             let verifyPass = bcrypt.compareSync(pass,hashPass);
             if(verifyPass){
                 let payLoad = {
-                    email:email,
+                    id:e.id,
                     role:e.role
                 };
                 let secret = process.env.SECRET_JWT;
@@ -64,8 +64,15 @@ app.post("/verify", (req, res) => {
       const token = req.headers["authorization"].split(" ")[1];
       const secret = process.env.SECRET_JWT;
       const tokenPayload = jwt.verify(token, secret);
+      console.log(tokenPayload)
       if (tokenPayload) {
-        res.status(200).json({ message: "OK" });
+        userCollection.findOne({id:tokenPayload.id}).then((e)=>{
+          if(e){
+            res.status(200).json({ message: "OK" });
+          }else{
+            res.status(404).json({message:"User not found"});
+          }
+        });
       } else {
         res.status(401).json({ message: "Please login again" });
       }
@@ -122,16 +129,13 @@ app.post("/member-create",(req,res) =>{
 app.use("/library-admin", tokenVerifier([roles.SA]));
 app.use("/library-admin", libAdminRoute);
 
-app.use("/library", tokenVerifier([roles.LA]));
 app.use("/library", libraryRoute);
 
-app.use("/librarian", tokenVerifier([roles.LA]));
 app.use("/librarian", librarianRoute);
 
 app.use("/book", tokenVerifier([roles.LB]));
 app.use("/book", bookRoute);
 
-// app.use("/member")
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
