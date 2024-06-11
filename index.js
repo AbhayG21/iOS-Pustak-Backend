@@ -20,6 +20,7 @@ app.use(bodyParser.json());
 
 app.get("/user/:id",tokenVerifier([roles.LA,roles.LB,roles.MB]),(req,res)=>{
   try{
+    console.log("alknjsf")
     const id = req.params.id
     if(!id){
       throw new Error()
@@ -29,7 +30,7 @@ app.get("/user/:id",tokenVerifier([roles.LA,roles.LB,roles.MB]),(req,res)=>{
 		.then((e)=>{
 			delete e.password
 			delete e._id
-			res.status(200).json({message:"Profile fetched",role:e.role,user,e});
+			res.status(200).json({message:"Profile fetched",role:e.role,user:e});
 		})
 		.catch((err)=>{
 			res.status(404).json({message:"Not found"})
