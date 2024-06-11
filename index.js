@@ -90,7 +90,8 @@ app.post("/verify", (req, res) => {
       const tokenPayload = jwt.verify(token, secret);
       console.log(tokenPayload)
       if (tokenPayload) {
-        userCollection.findOne({id:tokenPayload.id}).then((e)=>{
+
+        userCollection.findOne({id:tokenPayload.email}).then((e)=>{
           if(e){
             res.status(200).json({ message: "OK" });
           }else{
@@ -105,13 +106,9 @@ app.post("/verify", (req, res) => {
     }
   });
 
-app.post("/member-create",(req,res) =>{
+app.post("/auth/signup",(req,res) =>{
     try{const keys = [
-      "id",
-      "role",
-      "name",
-      "email",
-      "phone",
+      "user",
       "password"
     ]
     const keyBody = Object.keys(req.body);
@@ -122,22 +119,38 @@ app.post("/member-create",(req,res) =>{
   })
 
   const body = req.body
+  const user = body.user
   const password = body.password
   bcrypt.hash(password,salt).then((hashPass)=>{
-    userCollection.findOne({id:body.id}).then((e)=>{
+    userCollection.findOne({id:user.id}).then((e)=>{
       if(e){
         res.status(409).json({message:"Email already exists"})
       }
       else{
         const payload = {
-          ...req.body,
+          ...user,
            password:hashPass
          };
+
+         let tokenPayload = {
+          email: user.id,
+          role: roles.MB,
+        };
+        const secret = process.env.SECRET_JWT
+        const options = {expiresIn:"24h"}
+        const token = jwt.sign(tokenPayload,secret,options)
+
         userCollection.insertOne(payload).then((e)=>{
-          res.status(201).json({message:"member created"})
+          res.status(201).json({
+            message:"member created",
+            token:token,
+            role:roles.MB,
+            user:user,
+            id:user.id
+          })
         })
         .catch((error)=>{
-          res.status(400).json({message:"Bad request member"})
+          res.status(500).json({message:"Bad request member"})
         })
       }
     })
