@@ -9,6 +9,7 @@ export const bookKeys = [
     "id",
     "libraryId",
     "qty",
+    "description"
   ];
   
   export const libraryKeys = [

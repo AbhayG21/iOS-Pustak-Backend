@@ -1,9 +1,74 @@
 import express from "express";
-import {libraryCollection } from "../controllers/database.mjs";
+import {libraryCollection,finesCollection,issuesCollection } from "../controllers/database.mjs";
+import tokenVerifier from "../middleware/tokenVerifier.mjs";
+import roles from "../constants/roles.mjs";
 import jwt from "jsonwebtoken";
 import { bookKeys, keyVerifier } from "../Keys/index.mjs";
 const router = express.Router();
 
+
+
+router.get("/all/:id", (req, res) => {
+    try {
+      const id = req.params.id;
+      libraryCollection
+        .findOne({ id: id })
+        .then((e) => {
+          if (e) {
+            res.status(200).json({ message: "OK", books: e.books });
+          } else {
+            res.status(404).json({ message: "Not found" });
+          }
+        })
+        .catch((err) => {
+          res.status(500).json({ message: "Server error" });
+        });
+    } catch {
+      res.status(400).json({ message: "Bad request" });
+    }
+});
+
+router.post("issue",tokenVerifier([roles.MB]),(req,res)=>{
+    try {
+        const requiredKeys = [
+            "id",
+            "bookId",
+            "startDate",
+            "endDate",
+            "userId",
+            "approved",
+            "libraryId"
+        ]
+        const requestKeys = Object.keys(req.body)
+        keyVerifier(requestKeys,requiredKeys)
+
+        const body = req.body
+        let payLoad = [
+            ...body
+        ]
+
+        issuesCollection.insertOne(payLoad).then((e)=>{
+            libraryCollection.updateOne(
+                {
+                    id:body.libraryId,
+                    "books.id":body.bookId
+                },
+                {
+                    $inc:{
+                        "books.$.qty":-1,
+                    }
+                }
+            ).then((e)=>{
+                res.status(200).json({message:"Quantity updated",issue:body})
+            })
+        }).catch((err)=>{
+            res.status(500).json({message:"Server error"})
+        })
+    } catch (error) {
+        res.status(400).json({message:"Bad request"})
+    }
+})
+router.use(tokenVerifier([roles.LA,roles.LB]))
 router.post("/create", (req, res) => {
     try {
         const reqKeys = Object.keys(req.body);
@@ -75,26 +140,6 @@ router.post("/update",(req,res)=>{
 }catch{
     res.status(400).json({message:"Bad request"})
 }
-});
-
-router.get("/all/:id", (req, res) => {
-    try {
-      const id = req.params.id;
-      libraryCollection
-        .findOne({ id: id })
-        .then((e) => {
-          if (e) {
-            res.status(200).json({ message: "OK", books: e.books });
-          } else {
-            res.status(404).json({ message: "Not found" });
-          }
-        })
-        .catch((err) => {
-          res.status(500).json({ message: "Server error" });
-        });
-    } catch {
-      res.status(400).json({ message: "Bad request" });
-    }
 });
 
 router.post("/remove",(req,res)=>{

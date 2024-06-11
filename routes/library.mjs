@@ -49,13 +49,7 @@ router.post("/create", (req, res) => {
       else {
         const body = req.body;
         const payLoad = {
-          id:body.id,
-          libraryName:body.libraryName,
-          email:body.email,
-          libraryContact:body.libraryContact,
-          address:body.address,
-          books:[],
-          libraryAdmin:body.libraryAdmin
+         ...body
         }
         libraryCollection
           .insertOne(payLoad)
@@ -110,7 +104,7 @@ router.post("/update",(req,res)=>{
 
       libraryCollection.findOne({id:body.id}).then((e)=>{
         if(e){
-          delete body.librarianAssigned
+          delete body.books
           libraryCollection.updateOne(
             {id:body.id},
             {
@@ -124,6 +118,8 @@ router.post("/update",(req,res)=>{
         else{
           res.status(404).status({message:"Not found"})
         }
+      }).catch((err)=>{
+        res.status(500).status({message:"server error library update"})
       })
 
   }catch{

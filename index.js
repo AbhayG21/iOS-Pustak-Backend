@@ -17,6 +17,28 @@ const port = process.env.PORT
 const salt = 10
 app.use(bodyParser.json());
 
+
+app.get("/user/:id",tokenVerifier([roles.LA,roles.LB,roles.MB]),(req,res)=>{
+  try{
+    const id = req.params.id
+    if(!id){
+      throw new Error()
+    }
+    userCollection
+	.findOne({id:id})
+		.then((e)=>{
+			delete e.password
+			delete e._id
+			res.status(200).json({message:"Profile fetched",role:e.role,user,e});
+		})
+		.catch((err)=>{
+			res.status(404).json({message:"Not found"})
+		})
+
+  }catch{
+	res.status(400).json({message:"Bad request profile"})
+  }
+})
 app.get("/super-admin",superAdminDecoder,(req,res)=>{
     const token = req.token;
     res.status(201).json({message:"Token:",token:token})
@@ -44,6 +66,7 @@ app.post("/auth/login",(req,res)=>{
                 let options = {expiresIn:"24h"};
 
                 const token = jwt.sign(payLoad,secret,options);
+
                 delete e.password
                 delete e._id
                 res.status(200).json({ message: "OK",role: e.role, token: token, user: e, id: e.id });
@@ -100,8 +123,6 @@ app.post("/member-create",(req,res) =>{
   const body = req.body
   const password = body.password
   bcrypt.hash(password,salt).then((hashPass)=>{
-    
-
     userCollection.findOne({id:body.id}).then((e)=>{
       if(e){
         res.status(409).json({message:"Email already exists"})
@@ -122,8 +143,6 @@ app.post("/member-create",(req,res) =>{
   })}catch{
     res.status(400).json({message:"Bad request member 2"})
   }
-
-
 });
 
 app.use("/library-admin", tokenVerifier([roles.SA]));
@@ -133,7 +152,6 @@ app.use("/library", libraryRoute);
 
 app.use("/librarian", librarianRoute);
 
-app.use("/book", tokenVerifier([roles.LB]));
 app.use("/book", bookRoute);
 
 
