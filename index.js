@@ -8,6 +8,7 @@ import libAdminRoute from "./routes/libraryAdmin.mjs"
 import librarianRoute from "./routes/librarian.mjs"
 import libraryRoute from "./routes/library.mjs"
 import bookRoute from "./routes/book.mjs"
+import issueRoute from "./routes/issue.mjs"
 import bcrypt, { hash } from "bcrypt"
 import database from "./controllers/database.mjs"
 import { userCollection } from "./controllers/database.mjs"
@@ -20,7 +21,6 @@ app.use(bodyParser.json());
 
 app.get("/user/:id",tokenVerifier([roles.LA,roles.LB,roles.MB]),(req,res)=>{
   try{
-    console.log("alknjsf")
     const id = req.params.id
     if(!id){
       throw new Error()
@@ -88,10 +88,9 @@ app.post("/verify", (req, res) => {
       const token = req.headers["authorization"].split(" ")[1];
       const secret = process.env.SECRET_JWT;
       const tokenPayload = jwt.verify(token, secret);
-      console.log(tokenPayload)
       if (tokenPayload) {
 
-        userCollection.findOne({id:tokenPayload.email}).then((e)=>{
+        userCollection.findOne({id:tokenPayload.id}).then((e)=>{
           if(e){
             res.status(200).json({ message: "OK" });
           }else{
@@ -168,6 +167,7 @@ app.use("/librarian", librarianRoute);
 
 app.use("/book", bookRoute);
 
+app.use("/issue",issueRoute)
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

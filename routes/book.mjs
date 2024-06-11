@@ -28,46 +28,7 @@ router.get("/all/:id", (req, res) => {
     }
 });
 
-router.post("issue",tokenVerifier([roles.MB]),(req,res)=>{
-    try {
-        const requiredKeys = [
-            "id",
-            "bookId",
-            "startDate",
-            "endDate",
-            "userId",
-            "approved",
-            "libraryId"
-        ]
-        const requestKeys = Object.keys(req.body)
-        keyVerifier(requestKeys,requiredKeys)
 
-        const body = req.body
-        let payLoad = [
-            ...body
-        ]
-
-        issuesCollection.insertOne(payLoad).then((e)=>{
-            libraryCollection.updateOne(
-                {
-                    id:body.libraryId,
-                    "books.id":body.bookId
-                },
-                {
-                    $inc:{
-                        "books.$.qty":-1,
-                    }
-                }
-            ).then((e)=>{
-                res.status(200).json({message:"Quantity updated",issue:body})
-            })
-        }).catch((err)=>{
-            res.status(500).json({message:"Server error"})
-        })
-    } catch (error) {
-        res.status(400).json({message:"Bad request"})
-    }
-})
 router.use(tokenVerifier([roles.LA,roles.LB]))
 router.post("/create", (req, res) => {
     try {
