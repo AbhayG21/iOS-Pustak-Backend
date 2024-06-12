@@ -1,6 +1,6 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import { libraryCollection,userCollection } from "../controllers/database.mjs";
+import { libraryCollection, userCollection } from "../controllers/database.mjs";
 import { keyVerifier, libraryKeys } from "../Keys/index.mjs";
 import roles from "../constants/roles.mjs";
 import tokenVerifier from "../middleware/tokenVerifier.mjs"
@@ -8,6 +8,33 @@ import tokenVerifier from "../middleware/tokenVerifier.mjs"
 const router = express.Router();
 const secret = process.env.SECRET_JWT;
 
+
+router.get("/domain", (req, res) => {
+  try {
+    let id = req.query.q;
+    console.log(id)
+    if (!id) {
+      throw new Error();
+    } else {
+      libraryCollection
+        .find({ domain: id })
+        .toArray()
+        .then((e) => {
+          if (e) {
+            console.log(e)
+            res.status(200).json({ message: "Domain libraries fetched", libraries: e });
+          } else {
+            res.status(404).json({ message: "Not found" });
+          }
+        })
+        .catch((err) => {
+          res.status(500).json({ message: "Server error" });
+        });
+    }
+  } catch {
+    res.status(400).json({ message: "Bad request" });
+  }
+});
 
 router.get("/:id", (req, res) => {
   try {
@@ -32,7 +59,7 @@ router.use(tokenVerifier([roles.LA]))
 
 router.post("/create", (req, res) => {
   try {
-    const keys = ["id", "libraryName", "libraryContact", "email", "address","books","libraryAdmin"];
+    const keys = ["id", "libraryName", "libraryContact", "email", "address", "books", "libraryAdmin"];
     const reqKeys = Object.keys(req.body);
     keys.forEach((e) => {
       if (reqKeys.indexOf(e) == -1) {
@@ -49,14 +76,14 @@ router.post("/create", (req, res) => {
       else {
         const body = req.body;
         const payLoad = {
-         ...body
+          ...body
         }
         libraryCollection
           .insertOne(payLoad)
           .then((e) => {
             userCollection.updateOne(
-              {email:tokenPayload.email},
-              {$push:{libraries:payLoad.id}}
+              { email: tokenPayload.email },
+              { $push: { libraries: payLoad.id } }
             )
             res.status(201).json({ message: "Library created" });
           })
@@ -96,34 +123,34 @@ router.get("/", (req, res) => {
 
 
 
-router.post("/update",(req,res)=>{
-  try{
-      const reqKeys = Object.keys(req.body)
-      keyVerifier(reqKeys,libraryKeys)
-      const body = req.body
+router.post("/update", (req, res) => {
+  try {
+    const reqKeys = Object.keys(req.body)
+    keyVerifier(reqKeys, libraryKeys)
+    const body = req.body
 
-      libraryCollection.findOne({id:body.id}).then((e)=>{
-        if(e){
-          delete body.books
-          libraryCollection.updateOne(
-            {id:body.id},
-            {
-              $set:body
-            }
-          ).then((e)=>{
-            console.log(e)
-            res.status(200).json({message:"Library details updated"})
-          })
-        }
-        else{
-          res.status(404).status({message:"Not found"})
-        }
-      }).catch((err)=>{
-        res.status(500).status({message:"server error library update"})
-      })
+    libraryCollection.findOne({ id: body.id }).then((e) => {
+      if (e) {
+        delete body.books
+        libraryCollection.updateOne(
+          { id: body.id },
+          {
+            $set: body
+          }
+        ).then((e) => {
+          console.log(e)
+          res.status(200).json({ message: "Library details updated" })
+        })
+      }
+      else {
+        res.status(404).status({ message: "Not found" })
+      }
+    }).catch((err) => {
+      res.status(500).status({ message: "server error library update" })
+    })
 
-  }catch{
-    res.status(500).status({message:"Server Error"})
+  } catch {
+    res.status(500).status({ message: "Server Error" })
   }
 })
 

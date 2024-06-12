@@ -7,29 +7,29 @@ import { finesCollection } from "../controllers/database.mjs"
 const router = express.Router()
 
 
-router.get("/user",tokenVerifier([roles.MB]),(req,res)=>{
-    try{
+router.get("/user", tokenVerifier([roles.MB]), (req, res) => {
+    try {
         const id = req.query.q
-        if(!q){
+        if (!q) {
             throw new Error()
         }
 
         finesCollection
-        .find({userId:id})
-        .toArray()
-        .then((e)=>{
-            if(e){
-                res.status(200).json({message:"User fines fetched",fines:e})
-            }
-            else{
-                res.status(404).json({message:"User Fine not found"})
-            }
-        })
-        .catch((err)=>{
-            res.status(500).json({message:"User fine server error"})
-        })
-    }catch{
-        res.status(400).json({message:"Bad request fine user"})
+            .find({ userId: id })
+            .toArray()
+            .then((e) => {
+                if (e) {
+                    res.status(200).json({ message: "User fines fetched", fines: e })
+                }
+                else {
+                    res.status(404).json({ message: "User Fine not found" })
+                }
+            })
+            .catch((err) => {
+                res.status(500).json({ message: "User fine server error" })
+            })
+    } catch {
+        res.status(400).json({ message: "Bad request fine user" })
     }
 })
 router.use(tokenVerifier([roles.LB]))
@@ -77,4 +77,5 @@ router.get("/all", (req, res) => {
         res.status(400).json({ message: "Bad request" });
     }
 });
+
 export default router

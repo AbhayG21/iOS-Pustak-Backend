@@ -16,5 +16,6 @@ let database = connect.db("pustak-main");
 export const userCollection = database.collection("pustak-users");
 export const libraryCollection = database.collection("pustak-libraries");
 export const finesCollection  = database.collection("pustak-fines");
-export const issuesCollection  = database.collection("pustak-issues");
+export const issuesCollection = database.collection("pustak-issues");
+export const wishlistCollection = database.collection("pustak-wishlist")
 export default database;

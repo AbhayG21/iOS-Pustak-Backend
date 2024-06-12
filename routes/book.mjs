@@ -27,7 +27,13 @@ router.get("/all/:id", (req, res) => {
       res.status(400).json({ message: "Bad request" });
     }
 });
-
+router.post("/wishlist", tokenVerifier([roles.MB]),(req, res) => {
+    try {
+        
+    } catch (error) {
+        
+    }
+})
 
 router.use(tokenVerifier([roles.LA,roles.LB]))
 router.post("/create", (req, res) => {

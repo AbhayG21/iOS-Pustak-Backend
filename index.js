@@ -10,6 +10,7 @@ import libraryRoute from "./routes/library.mjs"
 import bookRoute from "./routes/book.mjs"
 import issueRoute from "./routes/issue.mjs"
 import fineRoute from "./routes/fine.mjs"
+import memberRoute from "./routes/member.mjs"
 import bcrypt, { hash } from "bcrypt"
 import database from "./controllers/database.mjs"
 import { userCollection } from "./controllers/database.mjs"
@@ -91,8 +92,7 @@ app.post("/verify", (req, res) => {
     const secret = process.env.SECRET_JWT;
     const tokenPayload = jwt.verify(token, secret);
     if (tokenPayload) {
-
-      userCollection.findOne({ id: tokenPayload.id }).then((e) => {
+      userCollection.findOne({ id: tokenPayload.email }).then((e) => {
         if (e) {
           res.status(200).json({ message: "OK" });
         } else {
@@ -175,6 +175,7 @@ app.use("/issue", issueRoute)
 
 app.use("/fine", fineRoute)
 
+app.use("/member",memberRoute)
 cron.schedule("0 0 * * *", addFine)
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
