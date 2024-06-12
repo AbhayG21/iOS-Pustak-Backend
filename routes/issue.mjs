@@ -48,7 +48,7 @@ router.post("/create",tokenVerifier([roles.MB]),(req,res)=>{
 
 router.get("/member",tokenVerifier([roles.MB]),(req,res)=>{
     try{
-        const uId = req.query.id
+        const uId = req.query.q
         if(!uId){
             throw new Error()
         }
@@ -68,7 +68,7 @@ router.get("/member",tokenVerifier([roles.MB]),(req,res)=>{
 })
 router.get("/all",tokenVerifier([roles.LB]),(req,res)=>{
     try{
-        const issueId = req.query.id;
+        const issueId = req.query.q;
         if(!issueId)
         {
             throw new Error()
@@ -130,5 +130,24 @@ router.post("/cancel",tokenVerifier([roles.MB]),(req,res)=>{
         res.status(400).json({message:"Bad request issue cancel"})
     }
 })
-
+router.post("/return",tokenVerifier([roles.LB]),(req,res)=>{
+    try {
+        const id = req.body.id
+        if(!id){
+            throw new Error()
+        }
+        issuesCollection.updateOne(
+            {id:id},
+            {
+                $set:{returned:true}
+            }
+        ).then((e)=>{
+            if(e.modifiedCount>0){
+                res.status(200).json({message:"Issue returned"})
+            }
+        })
+    } catch (error) {
+        res.status(400).json({message:"Bad request issue return"})
+    }
+})
 export default router;
