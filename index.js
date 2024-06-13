@@ -91,8 +91,9 @@ app.post("/verify", (req, res) => {
     const token = req.headers["authorization"].split(" ")[1];
     const secret = process.env.SECRET_JWT;
     const tokenPayload = jwt.verify(token, secret);
+    console.log(tokenPayload)
     if (tokenPayload) {
-      userCollection.findOne({ id: tokenPayload.email }).then((e) => {
+      userCollection.findOne({ id: tokenPayload.id }).then((e) => {
         if (e) {
           res.status(200).json({ message: "OK" });
         } else {

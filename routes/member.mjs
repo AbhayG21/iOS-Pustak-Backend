@@ -36,12 +36,15 @@ router.post("/set-library", (req, res) => {
 router.get("/wishlist", (req, res) => {
     try {
         const id = req.query.q
+        const libId = req.query.p
         if (!id) {
             throw new Error()
         }
 
         wishlistCollection
-            .find({ userId: id })
+            .find(
+                { $and: [{ userId: id }, { libraryId: libId }] }
+            )
             .project({ "book.$": 1 })
             .toArray()
             .then((e) => {
@@ -61,11 +64,9 @@ router.get("/wishlist", (req, res) => {
 
 router.post("/wishlist-add", (req, res) => {
     try {
-        const requiredKeys = ["book", "userId"];
+        const requiredKeys = ["book", "userId", "libraryId"];
         const requestKeys = Object.keys(req.body)
-
         keyVerifier(requestKeys, requiredKeys)
-
         wishlistCollection.insertOne({
             ...req.body
         })
@@ -77,6 +78,20 @@ router.post("/wishlist-add", (req, res) => {
 
     } catch (error) {
         res.status(400).json({ message: "Bad request set wishlist" })
+    }
+})
+
+router.post("wishlist-remove", (req, res) => {
+    try {
+        const requiredKeys = ["book", "userId", "libraryId"];
+        const requestKeys = Object.keys(req.body)
+        keyVerifier(requestKeys, requiredKeys)
+        wishlistCollection
+            .findOne(
+            {$and:[{libraryId:libraryId},{userId:userId}]}
+        )
+    } catch (error) {
+        
     }
 })
 export default router

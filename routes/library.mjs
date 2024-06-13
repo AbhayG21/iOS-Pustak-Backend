@@ -12,7 +12,6 @@ const secret = process.env.SECRET_JWT;
 router.get("/domain", (req, res) => {
   try {
     let id = req.query.q;
-    console.log(id)
     if (!id) {
       throw new Error();
     } else {
@@ -21,7 +20,6 @@ router.get("/domain", (req, res) => {
         .toArray()
         .then((e) => {
           if (e) {
-            console.log(e)
             res.status(200).json({ message: "Domain libraries fetched", libraries: e });
           } else {
             res.status(404).json({ message: "Not found" });
@@ -82,9 +80,10 @@ router.post("/create", (req, res) => {
           .insertOne(payLoad)
           .then((e) => {
             userCollection.updateOne(
-              { email: tokenPayload.email },
+              { id: tokenPayload.id },
               { $push: { libraries: payLoad.id } }
-            )
+            ).catch((error) => {
+            })
             res.status(201).json({ message: "Library created" });
           })
           .catch((err) => {
@@ -122,7 +121,45 @@ router.get("/", (req, res) => {
 });
 
 
+router.post("/delete", (req, res) => {
+  try {
+    const requiredKeys = ["libraryId", "librarianId"]
+    const requestKeys = Object.keys(req.body)
 
+    keyVerifier(requestKeys, requiredKeys)
+    const body = req.body
+
+    libraryCollection.findOneAndDelete({ id: body.libraryId })
+      .then((e) => {
+        userCollection.deleteOne({ id: body.librarianId })
+          .then(() => {
+            userCollection.updateMany(
+              { selectedLibrary: body.libraryId },
+              { $unset: { selectedLibrary: "" } }
+            )
+              .then(() => {
+                userCollection.updateMany(
+                  {},
+                  {
+                    $pull: {
+                      libraries: body.libraryId,
+                      librarians: body.librarianId
+                    }
+                  }
+                )
+                  .then(() => {
+                    res.status(200).json({ message: "Library deleted successfully" });
+                  });
+              });
+          });
+      })
+      .catch((err) => {
+        res.status(500).json({ message: "Server error while deleting library" });
+      });
+  } catch {
+    res.status(400).json({message:"Bad request library deletion"})
+  }
+})
 router.post("/update", (req, res) => {
   try {
     const reqKeys = Object.keys(req.body)
@@ -138,7 +175,6 @@ router.post("/update", (req, res) => {
             $set: body
           }
         ).then((e) => {
-          console.log(e)
           res.status(200).json({ message: "Library details updated" })
         })
       }
@@ -153,6 +189,7 @@ router.post("/update", (req, res) => {
     res.status(500).status({ message: "Server Error" })
   }
 })
+
 
 
 export default router;

@@ -20,7 +20,6 @@ router.get("/all/:id", (req, res) => {
         if (e) {
           delete e.password
           res.status(200).json({message:"Ok",librarian:e})
-          console.log(e)
           return
         } else {
           res.status(404).json({message:"Not found"})
