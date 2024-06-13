@@ -136,7 +136,7 @@ app.post("/auth/signup", (req, res) => {
           };
 
           let tokenPayload = {
-            email: user.id,
+            id: user.id,
             role: roles.MB,
           };
           const secret = process.env.SECRET_JWT
@@ -176,7 +176,7 @@ app.use("/issue", issueRoute)
 
 app.use("/fine", fineRoute)
 
-app.use("/member",memberRoute)
+app.use("/member", memberRoute)
 cron.schedule("0 0 * * *", addFine)
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

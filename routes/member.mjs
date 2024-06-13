@@ -83,15 +83,24 @@ router.post("/wishlist-add", (req, res) => {
 
 router.post("wishlist-remove", (req, res) => {
     try {
-        const requiredKeys = ["book", "userId", "libraryId"];
+        const requiredKeys = ["book", "userId","libraryId"];
         const requestKeys = Object.keys(req.body)
         keyVerifier(requestKeys, requiredKeys)
+        const body = req.body
         wishlistCollection
-            .findOne(
-            {$and:[{libraryId:libraryId},{userId:userId}]}
-        )
+            .deleteOne(
+                {
+                    $and: [
+                        { userId: body.userId },
+                        { "book.id": body.book.id },
+                        {libraryId:body.libraryId}
+                    ]
+                }
+        ).then((e) => {
+            res.status(200).json({message:"Successfully removed from wishlist"})
+        })
     } catch (error) {
-        
+        res.status(400).json({message:"Bad request wishlist remove"})
     }
 })
 export default router
